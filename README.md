@@ -91,7 +91,7 @@ http://127.0.0.1:8000/query?query=get%20me%20123
 ## 6. Run Streamlit UI (Optional)
 
 ```bash
-streamlit run ui/streamlit_ui.py
+streamlit run ./src/ui/streamlit_ui.py
 ```
 
 ---
