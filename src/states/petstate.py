@@ -5,6 +5,8 @@ class PetState(TypedDict):
     plan: Optional[Dict[str, Any]]
     api_response: Optional[Any]
     final_answer: Optional[str]
+    base_url: str = ""
+    openapi_spec: str
 
 from pydantic import BaseModel
 

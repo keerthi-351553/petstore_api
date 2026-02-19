@@ -1,17 +1,16 @@
 import requests
-from config import settings
 
-def call_petstore_api(method, path, payload=None):
-    url = f"{settings.PETSTORE_BASE_URL}{path}"
+def call_tool_api(method, path, payload=None, base_url=None):
+    if not base_url:
+        raise ValueError("No base URL provided")
 
-    response = requests.request(
-        method=method,
-        url=url,
-        json=payload
-    )
-    print("res-->",response.json())
+    url = f"{base_url}{path}"
+
+    response = requests.request(method=method, url=url, params=payload if method=="GET" else None, json=payload if method!="GET" else None)
 
     try:
         return response.json()
-    except:
+    except Exception:
         return response.text
+
+

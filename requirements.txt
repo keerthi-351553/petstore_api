@@ -3,8 +3,14 @@ langchain
 langgraph
 groq
 langchain_groq
+langchain_community
 uvicorn
 streamlit
 requests
 python-dotenv
 pydantic
+openapi-spec-validator
+pyYAML
+python-multipart
+prance
+jsonref
