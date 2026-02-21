@@ -22,10 +22,12 @@ elif spec_url:
     else:
         st.error(res.json())
 
+base_url = st.text_input("Base URL")
+
 query = st.text_input("Ask in natural language")
 
 if st.button("Submit"):
-    res = requests.post("http://localhost:8000/query", params={"query": query})
+    res = requests.post("http://localhost:8000/query", params={"query": query, "base_url": base_url})
     st.subheader("Execution Result")
     if res.headers.get("content-type", "").startswith("application/json"):
         st.json(res.json())

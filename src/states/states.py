@@ -1,6 +1,8 @@
+# states/state_models.py
 from typing import TypedDict, Optional, Dict, Any
+from pydantic import BaseModel
 
-class PetState(TypedDict):
+class AgentState(TypedDict):
     user_query: str
     plan: Optional[Dict[str, Any]]
     api_response: Optional[Any]
@@ -8,9 +10,7 @@ class PetState(TypedDict):
     base_url: str = ""
     openapi_spec: str
 
-from pydantic import BaseModel
-
 class Plan(BaseModel):
     method: str
     path: str
-    payload: dict
+    payload: Dict[str, Any]
