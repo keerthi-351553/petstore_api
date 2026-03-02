@@ -5,7 +5,6 @@ from jsonschema import Draft7Validator, RefResolver
 
 from src.llms.groq import get_llm
 from src.tools.api_tools import call_tool_api
-from src.states.states import Plan
 from src.utils.utils import (
     compress_schema,
     limit_validation_errors,
@@ -125,11 +124,10 @@ def find_spec_path(full_spec, plan_path):
     raise ValueError(f"Invalid path: {plan_path}")
 
 
-def tool_node(state):
+def tool_node(state, base_url):
     plan = state["plan"]
     full_spec = load_full_spec(state["openapi_spec"])
-    base_url = state["base_url"].rstrip("/") or "http://localhost"
-    
+
     # ==========================
     # Dynamic DELETE by attribute
     # ==========================
@@ -148,7 +146,10 @@ def tool_node(state):
             del_url = urljoin(base_url + "/", del_path.lstrip("/"))
             res = call_tool_api(method="DELETE", path=del_url, payload=None)
             deleted.append(res)
-        state["api_response"] = deleted
+        state["api_response"] = deleted if deleted else [{"deleted": 0}]
+
+        # mark as finished
+        plan["dynamic_delete"] = False
         return state
 
     # ==========================

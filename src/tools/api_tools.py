@@ -16,8 +16,14 @@ def call_tool_api(method, path, payload=None, base_url=None):
         params=payload if method.upper() == "GET" else None,
         json=payload if method.upper() != "GET" else None
     )
+    result = {
+        "status_code": response.status_code,
+        "success": response.ok
+    }
 
     try:
-        return response.json()
+        result["data"] = response.json()
     except:
-        return response.text
+        result["data"] = response.text
+
+    return result

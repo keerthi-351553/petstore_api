@@ -40,12 +40,11 @@ def query_agent(query: str, base_url: str):
 
     try:
         app.state.base_url = base_url
-        graph = build_graph(app.state.openapi_spec)
+        graph = build_graph(app.state.openapi_spec, base_url)
 
         result = graph.invoke({
             "user_query": query,
-            "openapi_spec": app.state.openapi_spec,
-            "base_url": base_url
+            "openapi_spec": app.state.openapi_spec
         })
 
         # remove spec from response

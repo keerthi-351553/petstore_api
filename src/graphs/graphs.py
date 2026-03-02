@@ -1,10 +1,13 @@
-# graphs/dynamic_graph.py
+# graphs/graphs.py
 from langgraph.graph import StateGraph, END
 from prance import ResolvingParser
 from src.states.states import AgentState
-from src.nodes.planner_nodes import planner_node
-from src.nodes.tool_nodes import tool_node
-from src.nodes.response_nodes import response_node
+from src.skills.registry import SkillRegistry
+from src.skills.planner_skill import PlannerSkill
+from src.skills.tool_skill import APICallSkill
+from src.skills.response_skill import ResponseSkill
+from src.nodes.skill_router_node import skill_router_node
+from src.skills.metrics import SkillMetrics
 
 def extract_endpoints(spec_str: str):
     parser = ResolvingParser(spec_string=spec_str)
@@ -15,17 +18,40 @@ def extract_endpoints(spec_str: str):
             endpoints.append(f"{method.upper()} {path}")
     return endpoints
 
-def build_graph(openapi_spec: str):
+def build_graph(openapi_spec: str, base_url: str):
     endpoints = extract_endpoints(openapi_spec)
+
+    metrics = SkillMetrics()  # ✅ Create once
+
+    registry = SkillRegistry()
+
+    registry.register(PlannerSkill(endpoints, metrics))
+    registry.register(APICallSkill(base_url=base_url, metrics=metrics))
+    registry.register(ResponseSkill(metrics))
+
     workflow = StateGraph(AgentState)
 
-    workflow.add_node("planner", lambda state: planner_node(state, endpoints), )
-    workflow.add_node("tool", tool_node)
-    workflow.add_node("responder", response_node)
+    workflow.add_node("router", skill_router_node)
 
-    workflow.set_entry_point("planner")
-    workflow.add_edge("planner", "tool")
-    workflow.add_edge("tool", "responder")
-    workflow.add_edge("responder", END)
+    for skill_name in registry.list():
+        workflow.add_node(
+            skill_name,
+            lambda state, s=skill_name: registry.get(s).execute(state)
+        )
+
+    workflow.set_entry_point("router")
+
+    workflow.add_conditional_edges(
+        "router",
+        lambda state: state.get("next_skill"),  # safer than state["next_skill"]
+        {
+            **{name: name for name in registry.list()},
+            None: END,  # 🔥 required for clean termination
+        }
+    )
+
+
+    for name in registry.list():
+        workflow.add_edge(name, "router")
 
     return workflow.compile()
